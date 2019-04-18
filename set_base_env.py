@@ -244,17 +244,61 @@ def change_python_ver(version):
 
 
 @task
+def change_pip_mirror():
+    """ 更换 pip 默认使用源为阿里源 """
+    with settings(hide('everything'), warn_only=True):
+        print(blue('[{}] 正在修改 pip 镜像源为阿里源...'.format(get_hostname())))
+        sudo('[ ! -d ~/.pip ] && mkdir ~/.pip')
+        sudo("echo '[global]' > ~/.pip/pip.conf")
+        sudo("echo 'index-url=https://mirrors.aliyun.com/pypi/simple/' >> ~/.pip/pip.conf")
+        sudo("echo '[install]' >> ~/.pip/pip.conf")
+        sudo("echo 'trusted-host=mirrors.aliyun.com' >> ~/.pip/pip.conf")
+
+
+@task
+def update_pip():
+    """ 升级pip版本 """
+    with settings(hide('everything'), warn_only=True):
+        print(blue('[{}] 正在升级 pip 版本为最新版本'.format(get_hostname())))
+        result = sudo('pip install -U pip')
+        if result.return_code == 0:
+            print(green('[{}] pip 已升级至最新版本'.format(get_hostname())))
+        else:
+            abort(red('[{}] pip 升级失败，请手动升级.'.format(get_hostname())))
+
+
+@task
+def install_python_software(name, version=None):
+    """ 安装Python第三方工具或包 """
+    with settings(hide('everything'), warn_only=True):
+        print(blue('[{0}] 正在安装 {1}'.format(get_hostname(), name)))
+        if version:
+            result = sudo('pip install {0}=={1}'.format(name, version))
+        else:
+            result = sudo('pip install {}'.format(name))
+
+        if result.return_code == 0:
+            print(green('[{0}] {1} 安装完成.'.format(get_hostname(), name)))
+        else:
+            abort(red('[{0}] {1} 安装失败！请手动安装!'.format(get_hostname(), name)))
+
+
+@task
 @runs_once
 def start():
     """ 开始配置环境 """
-    execute(turn_off_firewalld)
-    execute(disable_firewalld)
-    execute(disable_selinux)
-    execute(install_software)
-    execute(install_development_tools)
-    execute(change_yum_mirror)
-    execute(set_crontab_ntpdate)
-    execute(install_pyenv)
-    execute(install_virtualenv)
-    execute(install_python, '3.6.8')
-    execute(change_python_ver, '3.6.8')
+    # execute(turn_off_firewalld)
+    # execute(disable_firewalld)
+    # execute(disable_selinux)
+    # execute(install_software)
+    # execute(install_development_tools)
+    # execute(change_yum_mirror)
+    # execute(set_crontab_ntpdate)
+    # execute(install_pyenv)
+    # execute(install_virtualenv)
+    # execute(install_python, '3.6.8')
+    # execute(change_python_ver, '3.6.8')
+    # execute(change_pip_mirror)
+    # execute(update_pip)
+    execute(install_python_software, 'django', '2.1.4')
+
